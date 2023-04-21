@@ -3,14 +3,14 @@ import java.util.LinkedList;
 
 import static java.lang.Math.sqrt;
 public class Pendulum {
-    double m = 50; // масса в килограммах
+    double m = 0.005; // масса в килограммах
 
     double omega = 0;
     double beta = 0;
     double phi = 0;
     double r; // в пикселях
     double length; // в метрах ~ 100 пикселей
-    public LinkedList<Point> trace; // или класс Trace с полями coordinates[] и int cursor
+    public LinkedList<Point> trace;
 
     double attachmentPointX; // точка крепления (х)
     double attachmentPointY; // точка крепления (у)
@@ -18,6 +18,7 @@ public class Pendulum {
     private double ballX; // положение груза (Х)
     private double ballY; // положение груза (У)
 
+    //зависимый маятник - тот, который прикреплен к шару данного маятника
     Pendulum dependentPendulum;
 
     public Pendulum(double x0, double y0, double x, double y) {
@@ -34,7 +35,7 @@ public class Pendulum {
     }
 
     public void recalculateLength() {
-        this.length = sqrt(Math.pow(ballX - attachmentPointX, 2) + Math.pow(ballY - attachmentPointY, 2)) / 20;
+        this.length = sqrt(Math.pow(ballX - attachmentPointX, 2) + Math.pow(ballY - attachmentPointY, 2)) / 100;
     }
 
     public void recalculatePhi() {
@@ -81,8 +82,7 @@ public class Pendulum {
         this.dependentPendulum.attachmentPointX = this.ballX;
         this.dependentPendulum.attachmentPointY = this.ballY;
     }
-
-    public void paint(Graphics g) {
+    public void paintTrace(Graphics g) {
         // отрисовка следа
         Point prevPoint = null;
         int i = 0;
@@ -92,15 +92,15 @@ public class Pendulum {
                 prevPoint = p;
                 continue;
             }
-//            g.setColor(new Color(255-i/100,255-i/100,255-i/100));
-            g.setColor(Color.BLUE);
             g.drawLine(prevPoint.x, prevPoint.y, p.x, p.y);
             prevPoint = p;
         }
-        g.setColor(Color.BLACK);
-        // отрисовка маятника
-        g.drawLine((int) attachmentPointX, (int) attachmentPointY, (int) ballX, (int) ballY);
+    }
+    // отрисовка маятника
+    public void paintBall(Graphics g) {
         g.fillOval((int) (ballX - r), (int) (ballY - r), (int) (2 * r), (int) (2 * r));
     }
-
+    public void paintLine(Graphics g) {
+        g.drawLine((int) attachmentPointX, (int) attachmentPointY, (int) ballX, (int) ballY);
+    }
 }
