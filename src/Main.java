@@ -2,6 +2,7 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 
+import static java.awt.GridBagConstraints.RELATIVE;
 import static java.lang.Math.*;
 
 
@@ -25,29 +26,49 @@ public class Main extends JFrame {
     public static final int drawing = -1;
     public static int trajectory = shortTail;
 
+    JTextField ball1Input = new JTextField(20);
+
     Color background_color = Color.WHITE;
     Color foreground_color = Color.BLACK;
 
-    public Main(String title) {
-        super(title);
-        setBounds(100, 50, 1920, 1080);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+    public static void main(String[] args) {
+        Main main = new Main("Симуляция двойного маятника");
+
+        main.setBounds(100, 50, 1920, 1080);
+        main.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         //создание меню бара
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(createMenuControl());
-        menuBar.add(createMenuTrace());
-        setJMenuBar(menuBar);
+        menuBar.add(main.createMenuControl());
+        menuBar.add(main.createMenuTrace());
+        main.setJMenuBar(menuBar);
 
         //создание панели
         MyPanel myPanel;
-        myPanel = new MyPanel(true, this);
-        add(myPanel);
-        setVisible(true);
+        myPanel = new MyPanel(true, main);
+        main.add(myPanel);
+        main.setVisible(true);
 
+        main.addButtons(myPanel);
+
+        //создаём двойной маятник
+        main.x0 = myPanel.getWidth() / 2;
+        main.y0 = myPanel.getHeight() / 2;
+        Main.p1 = new Pendulum(main.x0, main.y0, main.x0 + 200, main.y0);
+        Main.p2 = new Pendulum(main.x0 + 200, main.y0, main.x0 + 400, main.y0);
+        Main.p1.setDependentPendulum(p2);
+    }
+
+
+    public Main(String title) {
+        super(title);
+
+    }
+
+    private void addButtons(MyPanel myPanel) {
         //Создание кнопок шаров
-        JButton ball1Button = new JButton("Внутренний шар");
-        JButton ball2Button = new JButton("Внешний шар");
+        JButton ball1Button = new JButton("Голубой шар");
+        JButton ball2Button = new JButton("Фиолетовый шар");
         ball1Button.setBackground(background_color);
         ball1Button.setForeground(foreground_color);
         ball2Button.setBackground(background_color);
@@ -98,18 +119,29 @@ public class Main extends JFrame {
         constraints.gridx = 2;
         container.add(ball2Button, constraints);
 
-        //создаём двойной маятник
-        x0 = myPanel.getWidth() / 2;
-        y0 = myPanel.getHeight() / 2;
-        Main.p1 = new Pendulum(x0, y0, x0 + 200, y0);
-        Main.p2 = new Pendulum(x0 + 200, y0, x0 + 400, y0);
-        Main.p1.setDependentPendulum(p2);
+        ball1Input.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String ball1InputText = ball1Input.getText();
+                p1.setMass(Float.parseFloat(ball1InputText));
+                p2.setMass(Float.parseFloat(ball1InputText));
+                System.out.printf("l1 = %.1f " , p1.length);
+                System.out.println(p1.getMass() + " " + p2.getMass());
+
+            }
+        });
+        constraints.gridx = RELATIVE;
+        myPanel.add(ball1Input, constraints);
+
+//        JTextField ball2Input = new JTextField(20);
+//        constraints.gridx = 4;
+//        myPanel.add(ball2Input, constraints);
     }
 
     //создаем меню управления
     private JMenu createMenuControl() {
         JMenu menuControl = new JMenu("Управление");
-        JMenuItem start = new JMenuItem("Старт");
+        JMenuItem start = new JMenuItem("Пуск");
         JMenuItem pause = new JMenuItem("Пауза");
         JMenuItem reset = new JMenuItem("Завершить");
         menuControl.add(start);
@@ -223,11 +255,6 @@ public class Main extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
-        Main main = new Main("Симуляция двойного маятника");
-    }
-
-
 
     //метод, определяющий изменение состояния маятника за малое время
     public static void updatePendulumSystem(double delta) {
@@ -240,26 +267,29 @@ public class Main extends JFrame {
 
         //расчет углового ускорения внутреннего шара beta1
         double comp_1, comp_2, comp_3;
-        comp_1 = -G * (2f * p1.m + p2.m) * sin(p1.phi) - p2.m * G * sin(p1.phi - 2f * p2.phi);
-        comp_2 = 2f * sin(p1.phi - p2.phi) * p2.m * (pow(p2.omega, 2) * p2.length + pow(p1.omega, 2) * p1.length * cos(p1.phi - p2.phi));
-        comp_3 = p1.length * (2f * p1.m + p2.m - p2.m * cos(2f * p1.phi - 2 * p2.phi));
-        if (Math.abs(comp_3) < 0.0001)
+        double m1 = p1.getMass();
+        double m2 = p2.getMass();
+
+        comp_1 = -G * (2f * m1 + m2) * sin(p1.phi) - m2 * G * sin(p1.phi - 2f * p2.phi);
+        comp_2 = 2f * sin(p1.phi - p2.phi) * m2 * (pow(p2.omega, 2) * p2.length + pow(p1.omega, 2) * p1.length * cos(p1.phi - p2.phi));
+        comp_3 = p1.length * (2f * m1 + m2 - m2 * cos(2f * p1.phi - 2 * p2.phi));
+        if (Math.abs(comp_3) < 0.0000001)
             System.out.println("Zero divide 1");
         p1.beta = ((comp_1 - comp_2) / comp_3);
 
         //расчет углового ускорения внешнего шара beta2
         comp_1 = 2 * sin(p1.phi - p2.phi);
-        comp_2 = pow(p1.omega, 2) * p1.length * (p1.m + p2.m) + G * (p1.m + p2.m) * cos(p1.phi) + pow(p2.omega, 2) * p2.length * p2.m * cos(p1.phi - p2.phi);
-        comp_3 = p2.length * (2f * p1.m + p2.m - p2.m * cos(2f * p1.phi - 2f * p2.phi));
-        if (Math.abs(comp_3) < 0.0001)
+        comp_2 = pow(p1.omega, 2) * p1.length * (m1 + m2) + G * (m1 + m2) * cos(p1.phi) + pow(p2.omega, 2) * p2.length * m2 * cos(p1.phi - p2.phi);
+        comp_3 = p2.length * (2f * m1 + m2 - m2 * cos(2f * p1.phi - 2f * p2.phi));
+        if (Math.abs(comp_3) < 0.0000001)
             System.out.println("Zero divide 2");
         p2.beta = ((comp_1 * comp_2) / comp_3);
 
         //определяем изменение угловых скоростей и координат
+        p1.phi += p1.omega * delta + p1.beta * pow(delta, 2) /2;
+        p2.phi += p2.omega * delta + p2.beta * pow(delta, 2) /2;
         p1.omega += p1.beta * delta;
         p2.omega += p2.beta * delta;
-        p1.phi += p1.omega * delta;
-        p2.phi += p2.omega * delta;
 
         //вычисляем новые координаты в декартовой системе
         double newBall1X = p1.attachmentPointX + p1.length * 100f * sin(p1.phi);

@@ -1,14 +1,16 @@
 import java.awt.*;
 import java.util.LinkedList;
 
+import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 public class Pendulum {
-    double m = 0.005; // масса в килограммах
+    private double m = 0.005; // масса в килограммах
+    private double r; // в пикселях
 
-    double omega = 0;
-    double beta = 0;
-    double phi = 0;
-    double r; // в пикселях
+    double omega = 0; // Угл скорость
+    double beta = 0;  // Угл ускорение
+    double phi = 0;   // Угол
+
     double length; // в метрах ~ 100 пикселей
     public LinkedList<Point> trace;
 
@@ -68,13 +70,19 @@ public class Pendulum {
         return ballY;
     }
 
+    public double getMass() {
+        return m;
+    }
+
     public void setBallY(double ballY) {
         if (dependentPendulum != null)
             dependentPendulum.attachmentPointY = ballY;
         this.ballY = ballY;
     }
 
-    public Pendulum() {
+    public void setMass(double m) {
+        this.m = m;
+//        r *= pow(m/this.m, 1 / 3); delete
     }
 
     public void setDependentPendulum(Pendulum dependentPendulum) {
