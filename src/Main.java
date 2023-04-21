@@ -16,9 +16,8 @@ public class Main extends JFrame {
     public static Pendulum p1;
     public static Pendulum p2;
 
-    public static long lastTime;
-    public static long currentTime;
-    public static boolean AnimationStarted;
+    public static boolean animationStarted;
+    public static boolean unvisible;
     public static final int shortTail = 50;
     public static final int mediumTail = 100;
     public static final int longTail = 300;
@@ -31,7 +30,7 @@ public class Main extends JFrame {
 
     public Main(String title) {
         super(title);
-        setBounds(100, 50, 1500, 1000);
+        setBounds(100, 50, 1920, 1080);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         //создание меню бара
@@ -120,15 +119,15 @@ public class Main extends JFrame {
         start.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                AnimationStarted = true;
-                lastTime = System.nanoTime();
+                animationStarted = true;
+                MyPanel.lastTime = System.nanoTime();
                 Main.this.repaint();
             }
         });
         pause.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                AnimationStarted = false;
+                animationStarted = false;
             }
         });
         reset.addActionListener(new ActionListener() {
@@ -140,7 +139,7 @@ public class Main extends JFrame {
                 p1.omega = 0;
                 p2.beta = 0;
                 p2.omega = 0;
-                AnimationStarted = false;
+                animationStarted = false;
                 Main.this.repaint();
             }
         });
@@ -157,11 +156,13 @@ public class Main extends JFrame {
         JMenuItem longTail = new JMenuItem("Длинный хвост");
         JMenuItem clearTrace = new JMenuItem("Очистить траекторию");
         JMenuItem drawing = new JMenuItem("Рисование");
+        JMenuItem unvisibleMode = new JMenuItem("Невидимый режим");
         menuTrace.add(emptyTail);
         menuTrace.add(shortTail);
         menuTrace.add(longTail);
         menuTrace.add(clearTrace);
         menuTrace.add(drawing);
+        menuTrace.add(unvisibleMode);
 
         emptyTail.addActionListener(new ActionListener() {
             @Override
@@ -205,9 +206,16 @@ public class Main extends JFrame {
                 Main.trajectory = Main.drawing;
             }
         });
+        unvisibleMode.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                unvisible = !unvisible;
+            }
+        });
         return menuTrace;
     }
 
+    //очистка следа до размера выбранной траектории
     private void cleanupTail() {
         while (p1.trace.size() > trajectory) {
             p1.trace.pop();
@@ -215,10 +223,10 @@ public class Main extends JFrame {
         }
     }
 
-
     public static void main(String[] args) {
         Main main = new Main("Симуляция двойного маятника");
     }
+
 
 
     //метод, определяющий изменение состояния маятника за малое время
@@ -254,10 +262,10 @@ public class Main extends JFrame {
         p2.phi += p2.omega * delta;
 
         //вычисляем новые координаты в декартовой системе
-        double newBall1X = p1.attachmentPointX + p1.length * 20f * sin(p1.phi);
-        double newBall1Y = p1.attachmentPointY + p1.length * 20f * cos(p1.phi);
-        double newBall2X = p1.getBallX() + p2.length * 20f * sin(p2.phi);
-        double newBall2Y = p1.getBallY() + p2.length * 20f * cos(p2.phi);
+        double newBall1X = p1.attachmentPointX + p1.length * 100f * sin(p1.phi);
+        double newBall1Y = p1.attachmentPointY + p1.length * 100f * cos(p1.phi);
+        double newBall2X = p1.getBallX() + p2.length * 100f * sin(p2.phi);
+        double newBall2Y = p1.getBallY() + p2.length * 100f * cos(p2.phi);
         p1.setBallX(newBall1X);
         p1.setBallY(newBall1Y);
         p2.setBallX(newBall2X);
